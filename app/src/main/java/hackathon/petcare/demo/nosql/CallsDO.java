@@ -1,10 +1,11 @@
 package hackathon.petcare.demo.nosql;
 
+
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribute;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBHashKey;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBTable;
 
-@DynamoDBTable(tableName = "places")
+@DynamoDBTable(tableName = "petcare-mobilehub-671595144-places")
 
 public class CallsDO {
     private Integer _placeID;
@@ -16,6 +17,7 @@ public class CallsDO {
     private Double _latitude;
     private Double _longitude;
     private Double _OExpFactor;
+    private Double _affordFactor;
 
     @DynamoDBHashKey(attributeName = "placeID")
     @DynamoDBAttribute(attributeName = "placeID")
@@ -25,7 +27,7 @@ public class CallsDO {
 
     public void setplaceID(final Integer _placeID) {
         this._placeID = _placeID;
-}
+    }
     @DynamoDBAttribute(attributeName = "placeName")
     public String getplaceName() {
         return _placeName;
@@ -85,11 +87,19 @@ public class CallsDO {
 
     @DynamoDBAttribute(attributeName = "OExpFactor")
     public Double getOExpFactor() {
-        return _longitude;
+        return _OExpFactor;
     }
 
     public void setOExpFactor(final Double _OExpFactor) {
-        this._longitude = _longitude;
+        this._OExpFactor = _OExpFactor;
+    }
+    @DynamoDBAttribute(attributeName = "affordFactor")
+    public Double getOAffFactor() {
+        return _affordFactor;
+    }
+
+    public void setAffFactor(final Double _affordFactor) {
+        this._affordFactor = _affordFactor;
     }
 
 }

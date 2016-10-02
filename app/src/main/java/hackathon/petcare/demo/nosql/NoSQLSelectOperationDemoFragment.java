@@ -90,7 +90,7 @@ public class NoSQLSelectOperationDemoFragment extends DemoFragmentBase implement
         });
     }
 
-    private void insertSampleData() {
+    /*private void insertSampleData() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -125,7 +125,7 @@ public class NoSQLSelectOperationDemoFragment extends DemoFragmentBase implement
                     demoTable.removeSampleData();
                 } catch (final AmazonClientException ex) {
                     // The removeSampleData call already logs the error, so we only need to
-                    // show the error dialog to the user at this point.
+                   / // show the error dialog to the user at this point.
                     DynamoDBUtils.showErrorDialogForServiceException(getActivity(),
                         getString(R.string.nosql_dialog_title_failed_operation_text), ex);
                     return;
@@ -151,7 +151,7 @@ public class NoSQLSelectOperationDemoFragment extends DemoFragmentBase implement
             }
         }).start();
     }
-
+*/
     private void promptToDeleteSampleData() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
             .setTitle(R.string.nosql_dialog_title_remove_confirmation)
@@ -160,7 +160,7 @@ public class NoSQLSelectOperationDemoFragment extends DemoFragmentBase implement
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int which) {
-                removeSampleData();
+               // removeSampleData();
             }
         });
         builder.show();
@@ -171,7 +171,7 @@ public class NoSQLSelectOperationDemoFragment extends DemoFragmentBase implement
         spinnerRunner = new SpinnerRunner();
         createOperationsList(fragmentView);
 
-        final Button insertSampleDataButton = (Button) fragmentView.findViewById(R.id.button_insert_sample_data);
+        /*final Button insertSampleDataButton = (Button) fragmentView.findViewById(R.id.button_insert_sample_data);
         insertSampleDataButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -185,7 +185,7 @@ public class NoSQLSelectOperationDemoFragment extends DemoFragmentBase implement
             public void onClick(final View v) {
                 promptToDeleteSampleData();
             }
-        });
+        });*/
     }
 
     private void handleNoResultsFound() {

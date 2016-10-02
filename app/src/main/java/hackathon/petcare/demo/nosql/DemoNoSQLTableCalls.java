@@ -225,7 +225,7 @@ public class DemoNoSQLTableCalls extends DemoNoSQLTableBase {
         return 0;
     }
 
-    @Override
+    /*@Override
     public void insertSampleData() throws AmazonClientException {
         Log.d(LOG_TAG, "Inserting Sample data.");
         final CallsDO firstItem = new CallsDO();
@@ -279,8 +279,8 @@ public class DemoNoSQLTableCalls extends DemoNoSQLTableBase {
             throw lastException;
         }
     }
-
-    @Override
+*/
+    //@Override
     public void removeSampleData() throws AmazonClientException {
         // Scan for the sample data to remove it.
 

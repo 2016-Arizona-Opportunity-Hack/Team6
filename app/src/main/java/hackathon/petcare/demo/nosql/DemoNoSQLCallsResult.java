@@ -23,7 +23,7 @@ public class DemoNoSQLCallsResult implements DemoNoSQLResult {
     public DemoNoSQLCallsResult(final CallsDO result) {
         this.result = result;
     }
-    @Override
+   /* @Override
     public void updateItem() {
         final DynamoDBMapper mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
         final String originalValue = result.getCallPrice();
@@ -35,7 +35,7 @@ public class DemoNoSQLCallsResult implements DemoNoSQLResult {
             result.setCallPrice(originalValue);
             throw ex;
         }
-    }
+    }*/
 
     @Override
     public void deleteItem() {
@@ -196,22 +196,22 @@ public class DemoNoSQLCallsResult implements DemoNoSQLResult {
         }
 
         resultNumberTextView.setText(String.format("#%d", + position+1));
-        callIdKeyTextView.setText("callId");
+        callIdKeyTextView.setText("PlaceID");
         callIdValueTextView.setText(result.getplaceID());
-        callPriceKeyTextView.setText("callPrice");
+        callPriceKeyTextView.setText("PlaceName");
         callPriceValueTextView.setText(result.getplaceName());
-        callTargetAmountKeyTextView.setText("callTargetAmount");
+        callTargetAmountKeyTextView.setText("ApartmentType");
         callTargetAmountValueTextView.setText(result.getAType());
-        callTypeKeyTextView.setText("callType");
-        callTypeValueTextView.setText("" + result.getbreedType().longValue());
-        stockNameKeyTextView.setText("stockName");
-        stockNameValueTextView.setText(result.getcatFactor());
-        stockStatusKeyTextView.setText("stockStatus");
+        callTypeKeyTextView.setText("BreedType");
+        callTypeValueTextView.setText(result.getbreedType());
+        stockNameKeyTextView.setText("CatFactor");
+        stockNameValueTextView.setText("" + result.getcatFactor().longValue());
+        stockStatusKeyTextView.setText("DogFactor");
         stockStatusValueTextView.setText("" + result.getdogFactor().longValue());
-        stopLossAmountKeyTextView.setText("stopLossAmount");
-        stopLossAmountValueTextView.setText(result.getlatitude());
-        timeUpdatedKeyTextView.setText("timeUpdated");
-        timeUpdatedValueTextView.setText(result.getlongitude());
+        stopLossAmountKeyTextView.setText("Latitude");
+        stopLossAmountValueTextView.setText("" + result.getlatitude().longValue());
+        timeUpdatedKeyTextView.setText("Longitude");
+        timeUpdatedValueTextView.setText("" + result.getlongitude().longValue());
         return layout;
     }
 }

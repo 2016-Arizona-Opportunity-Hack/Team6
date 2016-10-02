@@ -7,7 +7,7 @@ public interface DemoNoSQLResult {
     /**
      * Synchronously update an item.
      */
-    void updateItem();
+   // void updateItem();
 
     /**
      * Synchronously delete an item.

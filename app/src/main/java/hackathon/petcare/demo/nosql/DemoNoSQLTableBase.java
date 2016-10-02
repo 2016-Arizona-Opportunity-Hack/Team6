@@ -40,12 +40,12 @@ public abstract class DemoNoSQLTableBase {
     /**
      * Insert Sample data into the table.
      */
-    public abstract void insertSampleData();
+    //public abstract void insertSampleData();
 
     /**
      * Remove Sample data from the table.
      */
-    public abstract void removeSampleData();
+   // public abstract void removeSampleData();
 
     /**
      * Handler interface to retrieve the supported table operations.

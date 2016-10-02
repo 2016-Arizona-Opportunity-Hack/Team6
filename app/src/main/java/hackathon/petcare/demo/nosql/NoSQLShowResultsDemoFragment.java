@@ -172,7 +172,7 @@ public class NoSQLShowResultsDemoFragment extends DemoFragmentBase {
         builder.show();
     }
 
-    void promptToUpdateItemAt(int position) {
+    /*void promptToUpdateItemAt(int position) {
         final DemoNoSQLResultListAdapter listAdapter = (DemoNoSQLResultListAdapter) resultsList.getAdapter();
         final DemoNoSQLResult result = listAdapter.getItem(position);
 
@@ -205,7 +205,7 @@ public class NoSQLShowResultsDemoFragment extends DemoFragmentBase {
             }
         });
         builder.show();
-    }
+    }*/
 
     @Override
     public boolean onContextItemSelected(final MenuItem item) {
