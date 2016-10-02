@@ -22,7 +22,6 @@
         <activity
             android:name=".PetActivityScreenTwo"
             android:theme="@style/AppTheme.NoTitleBar">
-
         </activity>
 
         <meta-data

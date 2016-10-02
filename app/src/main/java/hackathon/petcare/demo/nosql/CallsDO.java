@@ -94,7 +94,7 @@ public class CallsDO {
         this._OExpFactor = _OExpFactor;
     }
     @DynamoDBAttribute(attributeName = "affordFactor")
-    public Double getOAffFactor() {
+    public Double getAffFactor() {
         return _affordFactor;
     }
 
