@@ -320,6 +320,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                     SharedPreferences.Editor editor = sharedpreferences.edit();
                     editor.putString("last", "");
                     editor.commit();
+                    performDBEntry();
                     dialog.dismiss();
                 }
             });
@@ -331,6 +332,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                     SharedPreferences.Editor editor = sharedpreferences.edit();
                     editor.putString("last", "");
                     editor.commit();
+                    performDBEntry();
                     dialog.dismiss();
                 }
             });
@@ -358,6 +360,9 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         mapFragment.getMapAsync(this);
     }
 
+    private void performDBEntry() {
+        //new PushData().execute();
+    }
     public void onPickButtonClick(View v) {
         // Construct an intent for the place picker
         try {
