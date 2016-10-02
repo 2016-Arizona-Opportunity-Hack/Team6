@@ -33,13 +33,15 @@ public class PetMainActivity extends AppCompatActivity {
     private DemoNoSQLTableBase demoTable;
     private Button bCat,bDog;
     public double dogFactor,catFactor;
+    private  SharedPreferences sharedpreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_pet_main);
         initializeApplication();
-        final SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+        sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
         mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
         demoTable = DemoNoSQLTableFactory.instance(getApplicationContext())
                 .getNoSQLTableByTableName("places");
@@ -70,7 +72,7 @@ public class PetMainActivity extends AppCompatActivity {
                 //new FetchData().execute();
             }
         });
-        //new FetchData().execute();
+        new FetchData().execute();
     }
 
     private void initializeApplication() {
@@ -102,6 +104,9 @@ public class PetMainActivity extends AppCompatActivity {
             if (results != null) {
                 resultsIterator = results.iterator();
                 int i=0;
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putInt("sizeOfDB",results.size());
+                editor.commit();
                 while (resultsIterator.hasNext()) {
                     if(results.size()<=i) {
                         return true;

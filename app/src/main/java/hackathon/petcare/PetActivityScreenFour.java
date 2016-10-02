@@ -117,7 +117,6 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
     private LocationRequest mLocationRequest;
     public double latitude, longitude;
     public DynamoDBMapper mapper;
-    private boolean isFirst = true;
     private Button filter;
     private Location mLocation;
 
@@ -246,7 +245,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
     }
 
     private GoogleMap mMap;
-
+    private Dialog dialog;
     private String USERXY = "";
 
     @Override
@@ -311,7 +310,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         if (!last.equalsIgnoreCase("")) {
             LayoutInflater inflater = (LayoutInflater) PetActivityScreenFour.this.getSystemService(LAYOUT_INFLATER_SERVICE);
             View layout = inflater.inflate(R.layout.custom_layout, null);
-            final Dialog dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+            dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar);
             dialog.setContentView(layout);
             TextView titleText = (TextView) dialog.findViewById(R.id.title_ans);
             RatingBar ratingBar2 = (RatingBar) dialog.findViewById(R.id.rating_two);
@@ -335,7 +334,11 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                     dialog.dismiss();
                 }
             });
-            dialog.show();
+            try {
+                dialog.show();
+            } catch (Exception e) {
+
+            }
         }
         String name = sharedpreferences.getString("place_name", "");
         mPlaceDetailsText.setText(name);
@@ -634,6 +637,11 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
+        if(dialog!=null) {
+            if(dialog.isShowing()) {
+                dialog.dismiss();
+            }
+        }
     }
 
     @Override
@@ -705,14 +713,14 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
 
         @Override
         public boolean executeOperation() {
-            if (isFirst) {
+            try {
                 mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
                 latitude = mLocation.getLatitude();
                 longitude = mLocation.getLongitude();
-                isFirst = false;
                 CallsDO firstItem = new CallsDO();
                 SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
-                firstItem.setplaceID(1);
+                int sizeDB = sharedpreferences.getInt("sizeOfDB",0);
+                firstItem.setplaceID(sizeDB+1);
                 firstItem.setplaceName(mPlaceDetailsText.getText().toString());
                 firstItem.setlongitude(longitude);
                 firstItem.setlatitude(latitude);
@@ -722,12 +730,10 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                 firstItem.setbreedType(0);
                 firstItem.setcatFactor((double) sharedpreferences.getFloat("catFactor", 0));
                 firstItem.setdogFactor((double) sharedpreferences.getFloat("dogFactor", 0));
-                try {
                     mapper.save(firstItem);
-                } catch (final AmazonClientException ex) {
+                } catch (final Exception ex) {
                     //lastException = ex;
                 }
-            }
             return false;
         }
 
