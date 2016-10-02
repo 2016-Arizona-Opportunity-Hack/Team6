@@ -40,9 +40,15 @@ import android.widget.Toast;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.EventListener;
@@ -74,6 +80,7 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         String str = (String) adapterView.getItemAtPosition(i);
+        mPlaceDetailsText.setText(str);
     }
 
     @Subscribe
@@ -105,22 +112,47 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
     private ArrayList autocomplete(String input) {
         ArrayList resultList = null;
 
-        // Tag used to cancel the request
-        String tag_json_arry = "json_array_req";
-
-        StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
-        sb.append("?key=" + API_KEY);
+        HttpURLConnection conn = null;
+        StringBuilder jsonResults = new StringBuilder();
         try {
+            StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
+            sb.append("?key=" + API_KEY);
             sb.append("&input=" + URLEncoder.encode(input, "utf8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+
+            URL url = new URL(sb.toString());
+            conn = (HttpURLConnection) url.openConnection();
+            InputStreamReader in = new InputStreamReader(conn.getInputStream());
+
+            // Load the results into a StringBuilder
+            int read;
+            char[] buff = new char[1024];
+            while ((read = in.read(buff)) != -1) {
+                jsonResults.append(buff, 0, read);
+            }
+        } catch (MalformedURLException e) {
+            return resultList;
+        } catch (IOException e) {
+            return resultList;
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
 
-        pDialog = new ProgressDialog(this);
-        pDialog.setMessage("Loading...");
-        pDialog.show();
+        try {
+            // Create a JSON object hierarchy from the results
+            JSONObject jsonObj = new JSONObject(jsonResults.toString());
+            JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
 
-        AppController.getInstance(this).getUserLocation(sb.toString());
+            // Extract the Place descriptions from the results
+            resultList = new ArrayList(predsJsonArray.length());
+            for (int i = 0; i < predsJsonArray.length(); i++) {
+                System.out.println(predsJsonArray.getJSONObject(i).getString("description"));
+                System.out.println("============================================================");
+                resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
+            }
+        } catch (JSONException e) {
+        }
 
         return resultList;
     }
