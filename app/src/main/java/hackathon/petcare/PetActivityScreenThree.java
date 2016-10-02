@@ -14,6 +14,8 @@ import com.jaredrummler.materialspinner.MaterialSpinner;
 public class PetActivityScreenThree extends AppCompatActivity {
 
     SharedPreferences sharedpreferences;
+    public int problemType;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,13 +26,36 @@ public class PetActivityScreenThree extends AppCompatActivity {
         }
         setContentView(R.layout.activity_pet_main_screen_three);
         MaterialSpinner spinner = (MaterialSpinner) findViewById(R.id.spinner);
-        spinner.setItems("Medical Attention", "Housing Issues", "Behaviorial Issues","Pet Stores");
+        spinner.setItems("Medical Attention", "Housing Issues", "Behavioral Issues","Pet Stores");
 
         spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
 
             @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
                 SharedPreferences.Editor editor = sharedpreferences.edit();
                 editor.putString("filter",item);
+                editor.commit();
+                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+                if (item.equals("Medical Attention")) {
+                    problemType = 1;
+                } else if (item.equals("Housing Issues"))
+
+                {
+                    problemType = 2;
+                } else if (item.equals("Behavioral Issues"))
+
+                {
+                    problemType = 3;
+                } else if (item.equals("Pet Stores"))
+
+                {
+                    problemType = 4;
+                } else
+
+                {
+                    problemType = -1;
+                }
+
+                editor.putInt("problemType", problemType);
                 editor.commit();
                 startActivity(new Intent(PetActivityScreenThree.this,PetMainActivity.class));
             }

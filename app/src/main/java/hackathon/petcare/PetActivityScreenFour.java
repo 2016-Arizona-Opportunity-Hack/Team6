@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,11 +31,14 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBScanExpression;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.PaginatedScanList;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -70,10 +74,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import hackathon.petcare.demo.nosql.CallsDO;
+import hackathon.petcare.demo.nosql.DemoNoSQLCallsResult;
+import hackathon.petcare.demo.nosql.DemoNoSQLOperationBase;
+import hackathon.petcare.demo.nosql.DemoNoSQLResult;
 import hackathon.petcare.mobile.AWSMobileClient;
 
 /**
@@ -106,14 +115,12 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
     public static final String VARIABLES_TRAINER = "&pet+trainer||dog+trainer";
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
-<<<<<<< HEAD
     public double latitude, longitude;
     public DynamoDBMapper mapper;
     private boolean isFirst = true;
-=======
     private Button filter;
+    private Location mLocation;
 
->>>>>>> aecf41a5bc80d8057b6277666019db61d782f27b
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -130,31 +137,9 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         if (location == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         } else {
+            mLocation = location;
             USERXY = location.getLatitude() + "," + location.getLongitude();
-            if(isFirst)
-            {
-                mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
-                latitude = location.getLatitude();
-                longitude = location.getLongitude();
-                isFirst = false;
-                CallsDO firstItem = new CallsDO();
-                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
-                firstItem.setplaceID(10);
-                firstItem.setplaceName(mPlaceDetailsText.toString());
-                firstItem.setlongitude(longitude);
-                firstItem.setlatitude(latitude);
-                firstItem.setOExpFactor((double)sharedpreferences.getFloat("oExp",5));
-                firstItem.setAffFactor((double)sharedpreferences.getFloat("aFactor",5));
-                firstItem.setAType(sharedpreferences.getInt("problemType",1));
-                firstItem.setbreedType(0);
-                firstItem.setcatFactor((double)sharedpreferences.getFloat("catFactor",0));
-                firstItem.setdogFactor((double)sharedpreferences.getFloat("dogFactor",0));
-                try {
-                    mapper.save(firstItem);
-                } catch (final AmazonClientException ex) {
-                    //lastException = ex;
-                }
-            }
+            new PushData().execute();
             callByFilterType();
         }
     }
@@ -245,15 +230,15 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             }
             SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedpreferences.edit();
-            editor.putString("last",title);
+            editor.putString("last", title);
             editor.commit();
-            String snippet = "Experience "+"Good   /  Affordable YES";
+            String snippet = "Experience " + "Good   /  Affordable YES";
             TextView snippetUi = ((TextView) view.findViewById(R.id.snippet));
             if (snippet != null && snippet.length() > 12) {
                 SpannableString snippetText = new SpannableString(snippet);
                 snippetText.setSpan(new ForegroundColorSpan(Color.MAGENTA), 0, 10, 0);
                 snippetText.setSpan(new ForegroundColorSpan(Color.BLUE), 12, snippet.length(), 0);
-                snippetUi.setText("Experience "+"Good   /  Affordable YES");
+                snippetUi.setText("Experience " + "Good   /  Affordable YES");
             } else {
                 snippetUi.setText("");
             }
@@ -290,13 +275,14 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
 
                 dialog.getWindow().setAttributes(lp);
                 MaterialSpinner spinner = (MaterialSpinner) dialog.findViewById(R.id.spinner);
-                spinner.setItems("Medical Attention", "Housing Issues", "Behaviorial Issues","Pet Stores");
+                spinner.setItems("Medical Attention", "Housing Issues", "Behaviorial Issues", "Pet Stores");
 
                 spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
 
-                    @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+                    @Override
+                    public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
                         SharedPreferences.Editor editor = sharedpreferences.edit();
-                        editor.putString("filter",item);
+                        editor.putString("filter", item);
                         filterType = item;
                         editor.commit();
                     }
@@ -321,27 +307,37 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             }
         });
 
-        String last = sharedpreferences.getString("last","");
-        if(!last.equalsIgnoreCase("")) {
-            LayoutInflater inflater = (LayoutInflater)PetActivityScreenFour.this.getSystemService(LAYOUT_INFLATER_SERVICE);
-            View layout = inflater.inflate(R.layout.custom_layout,null);
+        String last = sharedpreferences.getString("last", "");
+        if (!last.equalsIgnoreCase("")) {
+            LayoutInflater inflater = (LayoutInflater) PetActivityScreenFour.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+            View layout = inflater.inflate(R.layout.custom_layout, null);
             final Dialog dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar);
             dialog.setContentView(layout);
             TextView titleText = (TextView) dialog.findViewById(R.id.title_ans);
+            RatingBar ratingBar2 = (RatingBar) dialog.findViewById(R.id.rating_two);
+            ratingBar2.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+                @Override
+                public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putString("last", "");
+                    editor.commit();
+                    dialog.dismiss();
+                }
+            });
             titleText.setText(last);
             TextView skip = (TextView) dialog.findViewById(R.id.skip);
             skip.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     SharedPreferences.Editor editor = sharedpreferences.edit();
-                    editor.putString("last","");
+                    editor.putString("last", "");
                     editor.commit();
                     dialog.dismiss();
                 }
             });
             dialog.show();
         }
-        String name = sharedpreferences.getString("name","");
+        String name = sharedpreferences.getString("place_name", "");
         mPlaceDetailsText.setText(name);
        /* mPlaceDetailsText.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
         mPlaceDetailsText.setOnItemClickListener(this);*/
@@ -394,7 +390,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                 attributions = "";
             }
             mPlaceDetailsText.setText(name);
-            USERXY = latlng.latitude+","+latlng.longitude;
+            USERXY = latlng.latitude + "," + latlng.longitude;
             callByFilterType();
             /*mViewName.setText(name);
             mViewAddress.setText(address);
@@ -423,30 +419,34 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
 
     private void callByFilterType() {
         String queryString = "";
-        switch (filterType) {
-            case "Housing Issues"://Housing
-                StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES);
-                sb.append("&key=" + API_KEY);
-                queryString = sb.toString();
-                break;
-            case "Medical Issues"://Medical
-                StringBuilder sb2 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_VET);
-                sb2.append("&key=" + API_KEY);
-                queryString = sb2.toString();
-                break;
-            case "Behaviorial Issues"://Behavior
-                StringBuilder sb3 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_STORES);
-                sb3.append("&key=" + API_KEY);
-                queryString = sb3.toString();
-                break;
-            case "Pet Stores"://PetStore
-                StringBuilder sb4 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_TRAINER);
-                sb4.append("&key=" + API_KEY);
-                queryString = sb4.toString();
-                break;
+        if (filterType.equals("Medical Attention")) {
+            StringBuilder sb2 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_VET);
+            sb2.append("&key=" + API_KEY);
+            queryString = sb2.toString();
+        } else if (filterType.equals("Housing Issues"))
 
-            default:
-                break;
+        {
+            StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES);
+            sb.append("&key=" + API_KEY);
+            queryString = sb.toString();
+        } else if (filterType.equals("Behavioral Issues"))
+
+        {
+            StringBuilder sb3 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_STORES);
+            sb3.append("&key=" + API_KEY);
+            queryString = sb3.toString();
+        } else if (filterType.equals("Pet Stores"))
+
+        {
+            StringBuilder sb4 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_TRAINER);
+            sb4.append("&key=" + API_KEY);
+            queryString = sb4.toString();
+        } else
+
+        {
+            StringBuilder sb2 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_VET);
+            sb2.append("&key=" + API_KEY);
+            queryString = sb2.toString();
         }
         AppController.getInstance(this).getUserLocation(queryString);
     }
@@ -607,7 +607,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                 builder.include(lngTemp);
             }
         }
-        if(loc.size()>0 && location.size()>0) {
+        if (loc.size() > 0 && location.size() > 0) {
             LatLngBounds bounds = builder.build();
             int padding = 0; // offset from edges of the map in pixels
             CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
@@ -691,6 +691,102 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         }
 
         return resultList;
+    }
+
+    public class DemoScanWithoutFilterFScreen extends DemoNoSQLOperationBase {
+
+        private PaginatedScanList<CallsDO> results;
+        private Iterator<CallsDO> resultsIterator;
+
+        DemoScanWithoutFilterFScreen(final Context context) {
+            super(context.getString(R.string.nosql_operation_title_scan_without_filter),
+                    context.getString(R.string.nosql_operation_example_scan_without_filter));
+        }
+
+        @Override
+        public boolean executeOperation() {
+            if (isFirst) {
+                mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
+                latitude = mLocation.getLatitude();
+                longitude = mLocation.getLongitude();
+                isFirst = false;
+                CallsDO firstItem = new CallsDO();
+                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+                firstItem.setplaceID(1);
+                firstItem.setplaceName(mPlaceDetailsText.getText().toString());
+                firstItem.setlongitude(longitude);
+                firstItem.setlatitude(latitude);
+                firstItem.setOExpFactor((double) sharedpreferences.getFloat("oExp", 5));
+                firstItem.setAffFactor((double) sharedpreferences.getFloat("aFactor", 5));
+                firstItem.setAType((int) sharedpreferences.getInt("problemType", 1));
+                firstItem.setbreedType(0);
+                firstItem.setcatFactor((double) sharedpreferences.getFloat("catFactor", 0));
+                firstItem.setdogFactor((double) sharedpreferences.getFloat("dogFactor", 0));
+                try {
+                    mapper.save(firstItem);
+                } catch (final AmazonClientException ex) {
+                    //lastException = ex;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public List<DemoNoSQLResult> getNextResultGroup() {
+            return getNextResultsGroupFromIterator(resultsIterator);
+        }
+
+        @Override
+        public boolean isScan() {
+            return true;
+        }
+
+        @Override
+        public void resetResults() {
+            resultsIterator = results.iterator();
+        }
+    }
+
+    private static List<DemoNoSQLResult> getNextResultsGroupFromIterator(final Iterator<CallsDO> resultsIterator) {
+        if (!resultsIterator.hasNext()) {
+            return null;
+        }
+        List<DemoNoSQLResult> resultGroup = new LinkedList<>();
+        int itemsRetrieved = 0;
+        do {
+            // Retrieve the item from the paginated results.
+            final CallsDO item = resultsIterator.next();
+            // Add the item to a group of results that will be displayed later.
+            resultGroup.add(new DemoNoSQLCallsResult(item));
+            itemsRetrieved++;
+        } while ((itemsRetrieved < 40) && resultsIterator.hasNext());
+        return resultGroup;
+    }
+
+    private class PushData extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                new DemoScanWithoutFilterFScreen(PetActivityScreenFour.this).executeOperation();
+            } catch (final AmazonClientException ex) {
+
+            } finally {
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+        }
     }
 
     class GooglePlacesAutocompleteAdapter extends ArrayAdapter implements Filterable {

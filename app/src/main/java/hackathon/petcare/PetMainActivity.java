@@ -2,6 +2,7 @@ package hackathon.petcare;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +39,7 @@ public class PetMainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_pet_main);
         initializeApplication();
+        final SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
         mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
         demoTable = DemoNoSQLTableFactory.instance(getApplicationContext())
                 .getNoSQLTableByTableName("places");
@@ -48,7 +50,6 @@ public class PetMainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 catFactor = 1;
                 dogFactor = 0;
-                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedpreferences.edit();
                 editor.putFloat("catFactor",(float)catFactor);
                 editor.putFloat("dogFactor",(float)dogFactor);
@@ -61,11 +62,15 @@ public class PetMainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 dogFactor = 1;
                 catFactor = 0;
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putFloat("catFactor",(float)catFactor);
+                editor.putFloat("dogFactor",(float)dogFactor);
+                editor.commit();
                 startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
                 //new FetchData().execute();
             }
         });
-
+        //new FetchData().execute();
     }
 
     private void initializeApplication() {
