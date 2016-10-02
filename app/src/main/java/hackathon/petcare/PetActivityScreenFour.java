@@ -2,8 +2,10 @@ package hackathon.petcare;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -26,10 +28,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Pair;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.Interpolator;
@@ -48,10 +54,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -205,10 +215,9 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             int badge;
             // Use the equals() method on a Marker to check for equals.  Do not use ==.
 
-            badge = R.drawable.custom_info_bubble;
+            //badge = R.drawable.custom_info_bubble;
 
-            ((ImageView) view.findViewById(R.id.badge)).setImageResource(badge);
-
+            //((ImageView) view.findViewById(R.id.badge)).setVisibility(View.GONE);
             String title = marker.getTitle();
             TextView titleUi = ((TextView) view.findViewById(R.id.title));
             if (title != null) {
@@ -219,14 +228,17 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             } else {
                 titleUi.setText("");
             }
-
-            String snippet = marker.getSnippet();
+            SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putString("last",title);
+            editor.commit();
+            String snippet = "Experience "+"Good   /  Affordable YES";
             TextView snippetUi = ((TextView) view.findViewById(R.id.snippet));
             if (snippet != null && snippet.length() > 12) {
                 SpannableString snippetText = new SpannableString(snippet);
                 snippetText.setSpan(new ForegroundColorSpan(Color.MAGENTA), 0, 10, 0);
                 snippetText.setSpan(new ForegroundColorSpan(Color.BLUE), 12, snippet.length(), 0);
-                snippetUi.setText(snippetText);
+                snippetUi.setText("Experience "+"Good   /  Affordable YES");
             } else {
                 snippetUi.setText("");
             }
@@ -249,8 +261,34 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
         filterType = sharedpreferences.getString("filter", "");
         mPlaceDetailsText = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
-        mPlaceDetailsText.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
-        mPlaceDetailsText.setOnItemClickListener(this);
+        mPlaceDetailsText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onPickButtonClick(view);
+            }
+        });
+
+        String last = sharedpreferences.getString("last","");
+        if(!last.equalsIgnoreCase("")) {
+            LayoutInflater inflater = (LayoutInflater)PetActivityScreenFour.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+            View layout = inflater.inflate(R.layout.custom_layout,null);
+            final Dialog dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+            dialog.setContentView(layout);
+            TextView titleText = (TextView) dialog.findViewById(R.id.title_ans);
+            titleText.setText(last);
+            TextView skip = (TextView) dialog.findViewById(R.id.skip);
+            skip.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialog.dismiss();
+                }
+            });
+            dialog.show();
+        }
+        String name = sharedpreferences.getString("name","");
+        mPlaceDetailsText.setText(name);
+       /* mPlaceDetailsText.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
+        mPlaceDetailsText.setOnItemClickListener(this);*/
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -263,6 +301,52 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+    }
+
+    public void onPickButtonClick(View v) {
+        // Construct an intent for the place picker
+        try {
+            PlacePicker.IntentBuilder intentBuilder =
+                    new PlacePicker.IntentBuilder();
+            Intent intent = intentBuilder.build(this);
+            // Start the intent by requesting a result,
+            // identified by a request code.
+            startActivityForResult(intent, 3);
+
+        } catch (GooglePlayServicesRepairableException e) {
+            // ...
+        } catch (GooglePlayServicesNotAvailableException e) {
+            // ...
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode,
+                                    int resultCode, Intent data) {
+
+        if (requestCode == 3
+                && resultCode == Activity.RESULT_OK) {
+
+            // The user has selected a place. Extract the name and address.
+            final Place place = PlacePicker.getPlace(data, this);
+
+            final CharSequence name = place.getName();
+            final CharSequence address = place.getAddress();
+            final LatLng latlng = place.getLatLng();
+            String attributions = PlacePicker.getAttributions(data);
+            if (attributions == null) {
+                attributions = "";
+            }
+            mPlaceDetailsText.setText(name);
+            USERXY = latlng.latitude+","+latlng.longitude;
+            callByFilterType();
+            /*mViewName.setText(name);
+            mViewAddress.setText(address);
+            mViewAttributions.setText(Html.fromHtml(attributions));*/
+
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
@@ -459,6 +543,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
 
     private void plotData(ArrayList<String> location, ArrayList<Pair<Double, Double>> loc) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        mMap.clear();
         if (mMap != null) {
             for (int i = 0; i < location.size(); i++) {
                 LatLng lngTemp = new LatLng(loc.get(i).first, loc.get(i).second);

@@ -75,6 +75,10 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         String str = (String) adapterView.getItemAtPosition(i);
+        SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString("name",str);
+        editor.commit();
         mPlaceDetailsText.setText(str);
         hideKeypad();
     }

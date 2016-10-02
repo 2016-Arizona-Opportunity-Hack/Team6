@@ -21,10 +21,14 @@ public class PetActivityScreenThree extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+        String last = sharedpreferences.getString("last","");
+        if(!last.equalsIgnoreCase("")) {
+            startActivity(new Intent(PetActivityScreenThree.this,PetActivityScreenFour.class));
+        }
         setContentView(R.layout.activity_pet_main_screen_three);
         MaterialSpinner spinner = (MaterialSpinner) findViewById(R.id.spinner);
         spinner.setItems("Medical Attention", "Housing Issues", "Behaviorial Issues","Pet Stores");
-        sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
 
         spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
 
