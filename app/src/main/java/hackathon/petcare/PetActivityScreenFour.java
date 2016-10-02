@@ -31,6 +31,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -53,6 +54,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -92,6 +95,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import hackathon.petcare.demo.nosql.CallsDO;
+import hackathon.petcare.mobile.AWSMobileClient;
+
 /**
  * Created by pradhumanswami on 10/2/16.
  */
@@ -122,7 +128,9 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
     public static final String VARIABLES_TRAINER = "&pet+trainer||dog+trainer";
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
-
+    public double latitude, longitude;
+    public DynamoDBMapper mapper;
+    private boolean isFirst = true;
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -140,6 +148,30 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         } else {
             USERXY = location.getLatitude() + "," + location.getLongitude();
+            if(isFirst)
+            {
+                mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                isFirst = false;
+                CallsDO firstItem = new CallsDO();
+                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+                firstItem.setplaceID(10);
+                firstItem.setplaceName(mPlaceDetailsText.toString());
+                firstItem.setlongitude(longitude);
+                firstItem.setlatitude(latitude);
+                firstItem.setOExpFactor((double)sharedpreferences.getFloat("oExp",5));
+                firstItem.setAffFactor((double)sharedpreferences.getFloat("aFactor",5));
+                firstItem.setAType(sharedpreferences.getInt("problemType",1));
+                firstItem.setbreedType(0);
+                firstItem.setcatFactor((double)sharedpreferences.getFloat("catFactor",0));
+                firstItem.setdogFactor((double)sharedpreferences.getFloat("dogFactor",0));
+                try {
+                    mapper.save(firstItem);
+                } catch (final AmazonClientException ex) {
+                    //lastException = ex;
+                }
+            }
             callByFilterType();
         }
     }
