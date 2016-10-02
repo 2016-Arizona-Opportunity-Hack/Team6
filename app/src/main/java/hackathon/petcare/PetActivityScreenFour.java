@@ -1,23 +1,34 @@
 package hackathon.petcare;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.IntentSender;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.BounceInterpolator;
@@ -34,7 +45,14 @@ import android.widget.RadioGroup;
 import android.widget.RatingBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,6 +70,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -68,14 +88,86 @@ import java.util.Random;
 public class PetActivityScreenFour extends AppCompatActivity implements AdapterView.OnItemClickListener, GoogleMap.OnMarkerClickListener,
         GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback,
         GoogleMap.OnInfoWindowLongClickListener,
-        GoogleMap.OnInfoWindowCloseListener {
+        GoogleMap.OnInfoWindowCloseListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener, ActivityCompat.OnRequestPermissionsResultCallback {
+
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+
     private AutoCompleteTextView mPlaceDetailsText;
+    ProgressDialog pDialog;
+    SharedPreferences sharedpreferences;
     private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
     private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
-    private static final String OUT_JSON = "/json";
+    private static final String OUT_JSON = "/json?";
     public static final String API_KEY = "AIzaSyDmcrJIEfkdCTP61PQVGmCF1ZMzyaeeIiM";
-    ProgressDialog pDialog;
-    private static final LatLng BRISBANE = new LatLng(-27.47093, 153.0235);
+    //Arjun Code start for force nearby search query
+    public static final String TYPE_NEARBY = "/nearbysearch";
+    public static final String LOCATION = "location=";
+    public static final String RADIUS = "&radius=5000";
+    public static final String VARIABLES = "&keyword=apartment||apartment+complex";
+    private String filterType = "";
+    public static final String VARIABLES_VET = "&types=veterinary_care";
+    public static final String VARIABLES_STORES = "&types=pet_store";
+    public static final String VARIABLES_TRAINER = "&pet+trainer||dog+trainer";
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        } else {
+            USERXY = location.getLatitude() + "," + location.getLongitude();
+            callByFilterType();
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+        USERXY = location.getLatitude() + "," + location.getLongitude();
+        callByFilterType();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                /*
+                 * Thrown if Google Play services canceled the original
+                 * PendingIntent
+                 */
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
+            }
+        } else {
+            /*
+             * If no resolution is available, display a dialog to the
+             * user with the error.
+             */
+
+        }
+    }
 
     /**
      * Demonstrates customizing the info window and/or its contents.
@@ -112,20 +204,9 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         private void render(Marker marker, View view) {
             int badge;
             // Use the equals() method on a Marker to check for equals.  Do not use ==.
-            if (marker.equals(mBrisbane)) {
-                badge = R.drawable.custom_info_bubble;
-            } else if (marker.equals(mAdelaide)) {
-                badge = R.drawable.custom_info_bubble;
-            } else if (marker.equals(mSydney)) {
-                badge = R.drawable.custom_info_bubble;
-            } else if (marker.equals(mMelbourne)) {
-                badge = R.drawable.custom_info_bubble;
-            } else if (marker.equals(mPerth)) {
-                badge = R.drawable.custom_info_bubble;
-            } else {
-                // Passing 0 to setImageResource will clear the image view.
-                badge = 0;
-            }
+
+            badge = R.drawable.custom_info_bubble;
+
             ((ImageView) view.findViewById(R.id.badge)).setImageResource(badge);
 
             String title = marker.getTitle();
@@ -154,37 +235,80 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
 
     private GoogleMap mMap;
 
-    private Marker mPerth;
-
-    private Marker mSydney;
-
-    private Marker mBrisbane;
-
-    private Marker mAdelaide;
-
-    private Marker mMelbourne;
-
-    /**
-     * Keeps track of the last selected marker (though it may no longer be selected).  This is
-     * useful for refreshing the info window.
-     */
-    private Marker mLastSelectedMarker;
-
-    private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
-
-    private final Random mRandom = new Random();
+    private String USERXY = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pet_main_screen_four);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            int hasLocationPermission = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        ActivityCompat.requestPermissions(PetActivityScreenFour.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+        sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+        filterType = sharedpreferences.getString("filter", "");
         mPlaceDetailsText = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
         mPlaceDetailsText.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
         mPlaceDetailsText.setOnItemClickListener(this);
-
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1 * 1000);
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+
+                    Toast.makeText(getApplicationContext(), "Permission Denied, You cannot access location data.", Toast.LENGTH_LONG).show();
+
+                }
+                break;
+
+        }
+    }
+
+    private void callByFilterType() {
+        String queryString = "";
+        switch (filterType) {
+            case "Housing Issues"://Housing
+                StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES);
+                sb.append("&key=" + API_KEY);
+                queryString = sb.toString();
+                break;
+            case "Medical Issues"://Medical
+                StringBuilder sb2 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_VET);
+                sb2.append("&key=" + API_KEY);
+                queryString = sb2.toString();
+                break;
+            case "Behaviorial Issues"://Behavior
+                StringBuilder sb3 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_STORES);
+                sb3.append("&key=" + API_KEY);
+                queryString = sb3.toString();
+                break;
+            case "Pet Stores"://PetStore
+                StringBuilder sb4 = new StringBuilder(PLACES_API_BASE + TYPE_NEARBY + OUT_JSON + LOCATION + USERXY + RADIUS + VARIABLES_TRAINER);
+                sb4.append("&key=" + API_KEY);
+                queryString = sb4.toString();
+                break;
+
+            default:
+                break;
+        }
+        AppController.getInstance(this).getUserLocation(queryString);
     }
 
     @Override
@@ -195,8 +319,6 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         mMap.getUiSettings().setZoomControlsEnabled(false);
 
         // Add lots of markers to the map.
-        addMarkersToMap();
-
         // Setting an info window adapter allows us to change the both the contents and look of the
         // info window.
         mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
@@ -214,59 +336,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         // Pan to see all markers in view.
         // Cannot zoom to bounds until the map has a size.
         final View mapView = getSupportFragmentManager().findFragmentById(R.id.map).getView();
-        if (mapView.getViewTreeObserver().isAlive()) {
-            mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @SuppressWarnings("deprecation") // We use the new method when supported
-                @SuppressLint("NewApi") // We check which build version we are using.
-                @Override
-                public void onGlobalLayout() {
-                    LatLngBounds bounds = new LatLngBounds.Builder()
-                            .include(BRISBANE)
-                            .build();
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                        mapView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                    } else {
-                        mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    }
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
-                }
-            });
-        }
-    }
 
-    private void addMarkersToMap() {
-        // Uses a colored icon.
-        mBrisbane = mMap.addMarker(new MarkerOptions()
-                .position(BRISBANE)
-                .title("Brisbane")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-
-        int numMarkersInRainbow = 12;
-        for (int i = 0; i < numMarkersInRainbow; i++) {
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(
-                            -30 + 10 * Math.sin(i * Math.PI / (numMarkersInRainbow - 1)),
-                            135 - 10 * Math.cos(i * Math.PI / (numMarkersInRainbow - 1))))
-                    .title("Marker " + i)
-                    .icon(BitmapDescriptorFactory.defaultMarker(i * 360 / numMarkersInRainbow)));
-            marker.setTag(0);
-            mMarkerRainbow.add(marker);
-        }
-    }
-
-    /**
-     * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
-     * for use as a marker icon.
-     */
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {
-        Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
-        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
-                vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        DrawableCompat.setTint(vectorDrawable, color);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     private boolean checkReady() {
@@ -295,39 +365,10 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         }
         // Clear the map because we don't want duplicates of the markers.
         mMap.clear();
-        addMarkersToMap();
     }
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        if (marker.equals(mPerth)) {
-            // This causes the marker at Perth to bounce into position when it is clicked.
-            final Handler handler = new Handler();
-            final long start = SystemClock.uptimeMillis();
-            final long duration = 1500;
-
-            final Interpolator interpolator = new BounceInterpolator();
-
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    long elapsed = SystemClock.uptimeMillis() - start;
-                    float t = Math.max(
-                            1 - interpolator.getInterpolation((float) elapsed / duration), 0);
-                    marker.setAnchor(0.5f, 1.0f + 2 * t);
-
-                    if (t > 0.0) {
-                        // Post again 16ms later.
-                        handler.postDelayed(this, 16);
-                    }
-                }
-            });
-        } else if (marker.equals(mAdelaide)) {
-            // This causes the marker at Adelaide to change color and alpha.
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(mRandom.nextFloat() * 360));
-            marker.setAlpha(mRandom.nextFloat());
-        }
-
         // Markers have a z-index that is settable and gettable.
         float zIndex = marker.getZIndex() + 1.0f;
         marker.setZIndex(zIndex);
@@ -343,8 +384,6 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             // Here we use it to store the number of clicks for this marker.
             marker.setTag(clickCount);
         }
-
-        mLastSelectedMarker = marker;
         // We return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
@@ -383,8 +422,54 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             if (pDialog != null) {
                 pDialog.dismiss();
             }
+            JSONObject object = null;
+            try {
+                object = new JSONObject(String.valueOf(event.getValue().toString()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            JSONArray results = null;
+            try {
+                results = object.getJSONArray("results");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            ArrayList<String> location_names = new ArrayList<String>();
+            ArrayList<Pair<Double, Double>> loc = new ArrayList<Pair<Double, Double>>();
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject c = null;
+                try {
+                    c = results.getJSONObject(i);
+                    String name = c.getString("name");
+                    location_names.add(name);
+                    JSONObject g = c.getJSONObject("geometry");
+                    JSONObject l = g.getJSONObject("location");
+                    Pair<Double, Double> loc_pair = new Pair(l.getDouble("lat"), l.getDouble("lng"));
+                    loc.add(loc_pair);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            plotData(location_names, loc);
         }
 
+    }
+
+    private void plotData(ArrayList<String> location, ArrayList<Pair<Double, Double>> loc) {
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        if (mMap != null) {
+            for (int i = 0; i < location.size(); i++) {
+                LatLng lngTemp = new LatLng(loc.get(i).first, loc.get(i).second);
+                mMap.addMarker(new MarkerOptions().position(lngTemp).title(location.get(i)));
+                builder.include(lngTemp);
+            }
+        }
+        LatLngBounds bounds = builder.build();
+        int padding = 0; // offset from edges of the map in pixels
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+        mMap.animateCamera(cu);
     }
 
     @Override
@@ -393,11 +478,26 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         if (EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().unregister(this);
 
+        /*if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
+        }*/
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        //mGoogleApiClient.connect();
+        mGoogleApiClient.connect();
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }

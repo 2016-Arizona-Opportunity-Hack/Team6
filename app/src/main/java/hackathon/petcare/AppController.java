@@ -87,15 +87,7 @@ public class AppController {
         Task task = new Task() {
             @Override
             public void onSuccess(JSONObject jsonObject) {
-                try {
-                    if (jsonObject.getInt("status") == 0) {
-                        eventBus.post(new CobbocEvent(CobbocEvent.USER_OWN_LOCATION, true));
-                    } else {
-                        onError(new Throwable("Error!"));
-                    }
-                } catch (JSONException e) {
-                    onError(e);
-                }
+                eventBus.post(new CobbocEvent(CobbocEvent.USER_OWN_LOCATION, true,jsonObject));
             }
 
             @Override

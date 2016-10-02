@@ -39,7 +39,6 @@ import hackathon.petcare.mobile.user.IdentityManager;
 public class PetMainActivity extends AppCompatActivity {
 
     private IdentityManager identityManager;
-    private int REQUEST_PLACE_PICKER = 1;
     private DynamoDBMapper mapper;
     private DemoNoSQLTableBase demoTable;
     private Button bCat,bDog;
