@@ -13,10 +13,12 @@ import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Filterable;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -66,6 +68,7 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
     private static final String OUT_JSON = "/json";
     public static final String API_KEY = "AIzaSyDmcrJIEfkdCTP61PQVGmCF1ZMzyaeeIiM";
     ProgressDialog pDialog;
+    RatingBar mRatingbarApartment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +77,13 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
         mPlaceDetailsText = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
         mPlaceDetailsText.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
         mPlaceDetailsText.setOnItemClickListener(this);
+        mRatingbarApartment = (RatingBar) findViewById(R.id.rating);
+        mRatingbarApartment.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+                mRatingbarApartment.setRating(v);
+            }
+        });
     }
 
 
@@ -81,6 +91,13 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         String str = (String) adapterView.getItemAtPosition(i);
         mPlaceDetailsText.setText(str);
+        hideKeypad();
+    }
+
+    private void hideKeypad() {
+        View view = this.getCurrentFocus();
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     @Subscribe
@@ -111,7 +128,6 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
 
     private ArrayList autocomplete(String input) {
         ArrayList resultList = null;
-
         HttpURLConnection conn = null;
         StringBuilder jsonResults = new StringBuilder();
         try {

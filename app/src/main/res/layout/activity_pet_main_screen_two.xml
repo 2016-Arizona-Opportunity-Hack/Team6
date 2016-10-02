@@ -15,7 +15,7 @@
         android:id="@+id/title_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop="100dp"
         android:fontFamily="sans-serif-light"
         android:gravity="center_horizontal"
         android:text="I live at"
@@ -35,10 +35,10 @@
             android:id="@+id/autoCompleteTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-light"
-            android:singleLine="true"
             android:background="@drawable/button_bg"
+            android:fontFamily="sans-serif-light"
             android:gravity="center"
+            android:singleLine="true"
             android:textColor="#FFFF"
             android:textSize="25dp">
 
@@ -47,4 +47,33 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/second_title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_horizontal"
+        android:text="I rate my apartment for pets"
+        android:textColor="#FFFF"
+        android:textSize="40dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginTop="50dp"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <RatingBar
+            android:id="@+id/rating"
+            android:theme="@style/RatingBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:isIndicator="false"
+            android:numStars="5"
+            android:stepSize="1" />
+
+    </LinearLayout>
 </LinearLayout>
