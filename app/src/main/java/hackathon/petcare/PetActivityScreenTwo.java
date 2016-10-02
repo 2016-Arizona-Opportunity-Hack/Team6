@@ -82,6 +82,7 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
             @Override
             public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
                 mRatingbarApartment.setRating(v);
+                startActivity(new Intent(PetActivityScreenTwo.this,PetActivityScreenFour.class));
             }
         });
     }

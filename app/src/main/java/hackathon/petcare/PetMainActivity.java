@@ -64,8 +64,8 @@ public class PetMainActivity extends AppCompatActivity {
         bDog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
-                new FetchData().execute();
+                startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
+                //new FetchData().execute();
             }
         });
 
