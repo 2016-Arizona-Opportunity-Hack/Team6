@@ -297,6 +297,9 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
             skip.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putString("last","");
+                    editor.commit();
                     dialog.dismiss();
                 }
             });
@@ -568,10 +571,12 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
                 builder.include(lngTemp);
             }
         }
-        LatLngBounds bounds = builder.build();
-        int padding = 0; // offset from edges of the map in pixels
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-        mMap.animateCamera(cu);
+        if(loc.size()>0 && location.size()>0) {
+            LatLngBounds bounds = builder.build();
+            int padding = 0; // offset from edges of the map in pixels
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+            mMap.animateCamera(cu);
+        }
     }
 
     @Override
