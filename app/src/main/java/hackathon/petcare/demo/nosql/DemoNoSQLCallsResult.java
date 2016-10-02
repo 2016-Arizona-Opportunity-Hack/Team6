@@ -197,21 +197,21 @@ public class DemoNoSQLCallsResult implements DemoNoSQLResult {
 
         resultNumberTextView.setText(String.format("#%d", + position+1));
         callIdKeyTextView.setText("callId");
-        callIdValueTextView.setText(result.getCallId());
+        callIdValueTextView.setText(result.getplaceID());
         callPriceKeyTextView.setText("callPrice");
-        callPriceValueTextView.setText(result.getCallPrice());
+        callPriceValueTextView.setText(result.getplaceName());
         callTargetAmountKeyTextView.setText("callTargetAmount");
-        callTargetAmountValueTextView.setText(result.getCallTargetAmount());
+        callTargetAmountValueTextView.setText(result.getAType());
         callTypeKeyTextView.setText("callType");
-        callTypeValueTextView.setText("" + result.getCallType().longValue());
+        callTypeValueTextView.setText("" + result.getbreedType().longValue());
         stockNameKeyTextView.setText("stockName");
-        stockNameValueTextView.setText(result.getStockName());
+        stockNameValueTextView.setText(result.getcatFactor());
         stockStatusKeyTextView.setText("stockStatus");
-        stockStatusValueTextView.setText("" + result.getStockStatus().longValue());
+        stockStatusValueTextView.setText("" + result.getdogFactor().longValue());
         stopLossAmountKeyTextView.setText("stopLossAmount");
-        stopLossAmountValueTextView.setText(result.getStopLossAmount());
+        stopLossAmountValueTextView.setText(result.getlatitude());
         timeUpdatedKeyTextView.setText("timeUpdated");
-        timeUpdatedValueTextView.setText(result.getTimeUpdated());
+        timeUpdatedValueTextView.setText(result.getlongitude());
         return layout;
     }
 }

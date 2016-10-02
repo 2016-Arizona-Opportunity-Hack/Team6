@@ -4,82 +4,92 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribut
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBHashKey;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBTable;
 
-@DynamoDBTable(tableName = "marketcalls-mobilehub-422580932-calls")
+@DynamoDBTable(tableName = "places")
 
 public class CallsDO {
-    private String _callId;
-    private String _callPrice;
-    private String _callTargetAmount;
-    private Double _callType;
-    private String _stockName;
-    private Double _stockStatus;
-    private String _stopLossAmount;
-    private String _timeUpdated;
+    private Integer _placeID;
+    private String _placeName;
+    private Integer _AType;
+    private Integer _breedType;
+    private Double _catFactor;
+    private Double _dogFactor;
+    private Double _latitude;
+    private Double _longitude;
+    private Double _OExpFactor;
 
-    @DynamoDBHashKey(attributeName = "callId")
-    @DynamoDBAttribute(attributeName = "callId")
-    public String getCallId() {
-        return _callId;
-    }
-
-    public void setCallId(final String _callId) {
-        this._callId = _callId;
-    }
-    @DynamoDBAttribute(attributeName = "callPrice")
-    public String getCallPrice() {
-        return _callPrice;
+    @DynamoDBHashKey(attributeName = "placeID")
+    @DynamoDBAttribute(attributeName = "placeID")
+    public Integer getplaceID() {
+        return _placeID;
     }
 
-    public void setCallPrice(final String _callPrice) {
-        this._callPrice = _callPrice;
-    }
-    @DynamoDBAttribute(attributeName = "callTargetAmount")
-    public String getCallTargetAmount() {
-        return _callTargetAmount;
-    }
-
-    public void setCallTargetAmount(final String _callTargetAmount) {
-        this._callTargetAmount = _callTargetAmount;
-    }
-    @DynamoDBAttribute(attributeName = "callType")
-    public Double getCallType() {
-        return _callType;
+    public void setplaceID(final Integer _placeID) {
+        this._placeID = _placeID;
+}
+    @DynamoDBAttribute(attributeName = "placeName")
+    public String getplaceName() {
+        return _placeName;
     }
 
-    public void setCallType(final Double _callType) {
-        this._callType = _callType;
+    public void setplaceName(final String _placeName) {
+        this._placeName = _placeName;
     }
-    @DynamoDBAttribute(attributeName = "stockName")
-    public String getStockName() {
-        return _stockName;
-    }
-
-    public void setStockName(final String _stockName) {
-        this._stockName = _stockName;
-    }
-    @DynamoDBAttribute(attributeName = "stockStatus")
-    public Double getStockStatus() {
-        return _stockStatus;
+    @DynamoDBAttribute(attributeName = "AType")
+    public Integer getAType() {
+        return _AType;
     }
 
-    public void setStockStatus(final Double _stockStatus) {
-        this._stockStatus = _stockStatus;
+    public void setAType(final Integer _AType) {
+        this._AType = _AType;
     }
-    @DynamoDBAttribute(attributeName = "stopLossAmount")
-    public String getStopLossAmount() {
-        return _stopLossAmount;
-    }
-
-    public void setStopLossAmount(final String _stopLossAmount) {
-        this._stopLossAmount = _stopLossAmount;
-    }
-    @DynamoDBAttribute(attributeName = "timeUpdated")
-    public String getTimeUpdated() {
-        return _timeUpdated;
+    @DynamoDBAttribute(attributeName = "breedType")
+    public Integer getbreedType() {
+        return _breedType;
     }
 
-    public void setTimeUpdated(final String _timeUpdated) {
-        this._timeUpdated = _timeUpdated;
+    public void setbreedType(final Integer _breedType) {
+        this._breedType = _breedType;
+    }
+    @DynamoDBAttribute(attributeName = "catFactor")
+    public Double getcatFactor() {
+        return _catFactor;
+    }
+
+    public void setcatFactor(final Double _catFactor) {
+        this._catFactor = _catFactor;
+    }
+    @DynamoDBAttribute(attributeName = "dogFactor")
+    public Double getdogFactor() {
+        return _dogFactor;
+    }
+
+    public void setdogFactor(final Double _dogFactor) {
+        this._dogFactor = _dogFactor;
+    }
+    @DynamoDBAttribute(attributeName = "latitude")
+    public Double getlatitude() {
+        return _latitude;
+    }
+
+    public void setlatitude(final Double _latitude) {
+        this._latitude = _latitude;
+    }
+    @DynamoDBAttribute(attributeName = "longitude")
+    public Double getlongitude() {
+        return _longitude;
+    }
+
+    public void setlongitude(final Double _longitude) {
+        this._longitude = _longitude;
+    }
+
+    @DynamoDBAttribute(attributeName = "OExpFactor")
+    public Double getOExpFactor() {
+        return _longitude;
+    }
+
+    public void setOExpFactor(final Double _OExpFactor) {
+        this._longitude = _longitude;
     }
 
 }
