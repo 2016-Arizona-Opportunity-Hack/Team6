@@ -11,14 +11,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".PetMainActivity">
-
-        </activity>
-        <activity android:name=".PetActivityScreenTwo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".PetActivityScreenTwo">
+
         </activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
