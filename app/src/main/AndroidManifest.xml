@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="hackathon.petcare">
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,6 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".PetMainActivity">
+
+        </activity>
+        <activity android:name=".PetActivityScreenTwo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -17,7 +22,8 @@
         </activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD3WPg5A-Qn14UNeeUQH8OAQOVEHBtHBO8"/>
+            android:value="AIzaSyBhgNpZEAIX4-rAJ0y6Ey7yx2yCL2Anhwo"/>
+        zf`1234580
     </application>
 
 </manifest>

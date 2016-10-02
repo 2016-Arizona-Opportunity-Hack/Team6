@@ -1,7 +1,19 @@
 package hackathon.petcare;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
+import android.view.View;
+
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
 
 import hackathon.petcare.mobile.AWSMobileClient;
 import hackathon.petcare.mobile.user.IdentityManager;
@@ -9,6 +21,7 @@ import hackathon.petcare.mobile.user.IdentityManager;
 public class PetMainActivity extends AppCompatActivity {
 
     private IdentityManager identityManager;
+    private int REQUEST_PLACE_PICKER = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,4 +42,5 @@ public class PetMainActivity extends AppCompatActivity {
 
         // ...Put any application-specific initialization logic here...
     }
+
 }
