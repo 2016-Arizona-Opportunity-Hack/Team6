@@ -1,20 +1,63 @@
 package hackathon.petcare;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
+import android.view.View;
+import android.widget.Button;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBScanExpression;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.PaginatedScanList;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import hackathon.petcare.demo.nosql.CallsDO;
+import hackathon.petcare.demo.nosql.DemoNoSQLCallsResult;
+import hackathon.petcare.demo.nosql.DemoNoSQLOperationBase;
+import hackathon.petcare.demo.nosql.DemoNoSQLResult;
+import hackathon.petcare.demo.nosql.DemoNoSQLTableBase;
+import hackathon.petcare.demo.nosql.DemoNoSQLTableFactory;
 import hackathon.petcare.mobile.AWSMobileClient;
 import hackathon.petcare.mobile.user.IdentityManager;
 
 public class PetMainActivity extends AppCompatActivity {
 
     private IdentityManager identityManager;
+    private int REQUEST_PLACE_PICKER = 1;
+    private DynamoDBMapper mapper;
+    private DemoNoSQLTableBase demoTable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pet_main);
         initializeApplication();
+        mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
+        demoTable = DemoNoSQLTableFactory.instance(getApplicationContext())
+                .getNoSQLTableByTableName("places");
+        Button b = (Button) findViewById(R.id.button);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new FetchData().execute(" ");
+            }
+        });
     }
 
     private void initializeApplication() {
@@ -28,5 +71,90 @@ public class PetMainActivity extends AppCompatActivity {
         identityManager = awsMobileClient.getIdentityManager();
 
         // ...Put any application-specific initialization logic here...
+    }
+    public class DemoScanWithoutFilter extends DemoNoSQLOperationBase {
+
+        private PaginatedScanList<CallsDO> results;
+        private Iterator<CallsDO> resultsIterator;
+
+        DemoScanWithoutFilter(final Context context) {
+            super(context.getString(R.string.nosql_operation_title_scan_without_filter),
+                    context.getString(R.string.nosql_operation_example_scan_without_filter));
+        }
+
+        @Override
+        public boolean executeOperation() {
+            final DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
+            results = mapper.scan(CallsDO.class, scanExpression);
+            if (results != null) {
+                resultsIterator = results.iterator();
+                int i=0;
+                while (resultsIterator.hasNext()) {
+                    if(results.size()<=i) {
+                        return true;
+                    }
+                    CallsDO bean = results.get(i);
+
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public List<DemoNoSQLResult> getNextResultGroup() {
+            return getNextResultsGroupFromIterator(resultsIterator);
+        }
+
+        @Override
+        public boolean isScan() {
+            return true;
+        }
+
+        @Override
+        public void resetResults() {
+            resultsIterator = results.iterator();
+        }
+    }
+
+    private static List<DemoNoSQLResult> getNextResultsGroupFromIterator(final Iterator<CallsDO> resultsIterator) {
+        if (!resultsIterator.hasNext()) {
+            return null;
+        }
+        List<DemoNoSQLResult> resultGroup = new LinkedList<>();
+        int itemsRetrieved = 0;
+        do {
+            // Retrieve the item from the paginated results.
+            final CallsDO item = resultsIterator.next();
+            // Add the item to a group of results that will be displayed later.
+            resultGroup.add(new DemoNoSQLCallsResult(item));
+            itemsRetrieved++;
+        } while ((itemsRetrieved < 40) && resultsIterator.hasNext());
+        return resultGroup;
+    }
+
+    private class FetchData extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                new DemoScanWithoutFilter(PetMainActivity.this).executeOperation();
+            } catch (final AmazonClientException ex) {
+
+            } finally {
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+        }
     }
 }
