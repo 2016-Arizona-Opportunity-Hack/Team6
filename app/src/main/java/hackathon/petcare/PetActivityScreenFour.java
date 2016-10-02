@@ -32,17 +32,21 @@ import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Pair;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.Interpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -73,6 +77,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.jaredrummler.materialspinner.MaterialSpinner;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -122,6 +127,7 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
     public static final String VARIABLES_TRAINER = "&pet+trainer||dog+trainer";
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+    private Button filter;
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -261,6 +267,44 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
         filterType = sharedpreferences.getString("filter", "");
         mPlaceDetailsText = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
+        filter = (Button) findViewById(R.id.filter);
+        filter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Dialog dialog = new Dialog(PetActivityScreenFour.this);
+                dialog.setContentView(R.layout.custom_layout_filter);
+                WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+                lp.copyFrom(dialog.getWindow().getAttributes());
+                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+                lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+                lp.gravity = Gravity.CENTER;
+
+                dialog.getWindow().setAttributes(lp);
+                MaterialSpinner spinner = (MaterialSpinner) dialog.findViewById(R.id.spinner);
+                spinner.setItems("Medical Attention", "Housing Issues", "Behaviorial Issues","Pet Stores");
+
+                spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+
+                    @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putString("filter",item);
+                        filterType = item;
+                        editor.commit();
+                    }
+                });
+                Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
+                // if button is clicked, close the custom dialog
+                dialogButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        callByFilterType();
+                    }
+                });
+
+                dialog.show();
+            }
+        });
         mPlaceDetailsText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
