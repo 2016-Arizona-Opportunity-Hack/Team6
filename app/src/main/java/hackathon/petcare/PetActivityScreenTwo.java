@@ -40,6 +40,8 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
     private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
     private static final String OUT_JSON = "/json";
     public static final String API_KEY = "AIzaSyDmcrJIEfkdCTP61PQVGmCF1ZMzyaeeIiM";
+    public int problemType;
+    public double oExp,aFactor;
     ProgressDialog pDialog;
     RatingBar mRatingbarApartment;
 
@@ -55,6 +57,13 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
             @Override
             public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
                 mRatingbarApartment.setRating(v);
+                oExp = (double)v;
+                aFactor = (double)5.0;
+                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putFloat("oExp",(float)oExp);
+                editor.putFloat("aFactor",(float)aFactor);
+                editor.commit();
                 startActivity(new Intent(PetActivityScreenTwo.this,PetActivityScreenFour.class));
             }
         });
@@ -67,6 +76,24 @@ public class PetActivityScreenTwo extends AppCompatActivity implements AdapterVi
         SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.putString("name",str);
+        switch(str) {
+
+            case "Medical Attention":
+                problemType = 1;
+                break;
+            case "Housing Issues":
+                problemType = 2;
+                break;
+            case "Behaviorial Issues":
+                problemType = 3;
+                break;
+            case "Pet Stores":
+                problemType = 4;
+                break;
+            default:
+                break;
+        }
+        editor.putInt("problemType", problemType);
         editor.commit();
         mPlaceDetailsText.setText(str);
         hideKeypad();

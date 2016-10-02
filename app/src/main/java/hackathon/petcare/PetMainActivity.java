@@ -28,10 +28,10 @@ import hackathon.petcare.mobile.user.IdentityManager;
 public class PetMainActivity extends AppCompatActivity {
 
     private IdentityManager identityManager;
-    private DynamoDBMapper mapper;
+    public DynamoDBMapper mapper;
     private DemoNoSQLTableBase demoTable;
     private Button bCat,bDog;
-
+    public double dogFactor,catFactor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,12 +46,21 @@ public class PetMainActivity extends AppCompatActivity {
         bCat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                catFactor = 1;
+                dogFactor = 0;
+                SharedPreferences sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putFloat("catFactor",(float)catFactor);
+                editor.putFloat("dogFactor",(float)dogFactor);
+                editor.commit();
                 startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
             }
         });
         bDog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                dogFactor = 1;
+                catFactor = 0;
                 startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
                 //new FetchData().execute();
             }
