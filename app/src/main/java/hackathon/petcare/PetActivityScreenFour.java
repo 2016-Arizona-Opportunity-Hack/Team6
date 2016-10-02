@@ -1,6 +1,5 @@
 package hackathon.petcare;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -9,48 +8,28 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.SystemClock;
-import android.support.annotation.ColorInt;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.Interpolator;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.CheckBox;
+import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.RatingBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,12 +49,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.jaredrummler.materialspinner.MaterialSpinner;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -128,9 +106,14 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
     public static final String VARIABLES_TRAINER = "&pet+trainer||dog+trainer";
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+<<<<<<< HEAD
     public double latitude, longitude;
     public DynamoDBMapper mapper;
     private boolean isFirst = true;
+=======
+    private Button filter;
+
+>>>>>>> aecf41a5bc80d8057b6277666019db61d782f27b
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -293,6 +276,44 @@ public class PetActivityScreenFour extends AppCompatActivity implements AdapterV
         sharedpreferences = getSharedPreferences("PetCare", Context.MODE_PRIVATE);
         filterType = sharedpreferences.getString("filter", "");
         mPlaceDetailsText = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
+        filter = (Button) findViewById(R.id.filter);
+        filter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Dialog dialog = new Dialog(PetActivityScreenFour.this);
+                dialog.setContentView(R.layout.custom_layout_filter);
+                WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+                lp.copyFrom(dialog.getWindow().getAttributes());
+                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+                lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+                lp.gravity = Gravity.CENTER;
+
+                dialog.getWindow().setAttributes(lp);
+                MaterialSpinner spinner = (MaterialSpinner) dialog.findViewById(R.id.spinner);
+                spinner.setItems("Medical Attention", "Housing Issues", "Behaviorial Issues","Pet Stores");
+
+                spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+
+                    @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putString("filter",item);
+                        filterType = item;
+                        editor.commit();
+                    }
+                });
+                Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
+                // if button is clicked, close the custom dialog
+                dialogButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        callByFilterType();
+                    }
+                });
+
+                dialog.show();
+            }
+        });
         mPlaceDetailsText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

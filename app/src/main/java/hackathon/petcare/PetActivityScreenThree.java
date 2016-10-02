@@ -5,12 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.AutoCompleteTextView;
-import android.widget.RatingBar;
 
 import com.jaredrummler.materialspinner.MaterialSpinner;
-
-import hackathon.petcare.R;
 
 /**
  * Created by pradhumanswami on 10/2/16.
