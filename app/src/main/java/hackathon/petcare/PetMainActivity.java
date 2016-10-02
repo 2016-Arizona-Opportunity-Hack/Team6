@@ -42,22 +42,32 @@ public class PetMainActivity extends AppCompatActivity {
     private int REQUEST_PLACE_PICKER = 1;
     private DynamoDBMapper mapper;
     private DemoNoSQLTableBase demoTable;
+    private Button bCat,bDog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_pet_main);
         initializeApplication();
         mapper = AWSMobileClient.defaultMobileClient().getDynamoDBMapper();
         demoTable = DemoNoSQLTableFactory.instance(getApplicationContext())
                 .getNoSQLTableByTableName("places");
-        Button b = (Button) findViewById(R.id.button);
-        b.setOnClickListener(new View.OnClickListener() {
+        bCat = (Button) findViewById(R.id.button_cat);
+        bDog = (Button) findViewById(R.id.button_dog);
+        bCat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new FetchData().execute(" ");
+                startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
             }
         });
+        bDog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(PetMainActivity.this,PetActivityScreenTwo.class));
+            }
+        });
+
     }
 
     private void initializeApplication() {
